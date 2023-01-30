@@ -1,7 +1,7 @@
 import { prisma } from '@/config';
 import { Payment } from '@prisma/client';
 
-async function cretePayment(payment: NewPayment) {
+async function createPayment(payment: NewPayment) {
   return prisma.payment.create({ data: payment });
 }
 
@@ -10,7 +10,7 @@ async function findPaymentById(ticketId: number) {
 }
 
 const paymentRepository = {
-  cretePayment,
+  createPayment,
   findPaymentById,
 };
 export type NewPayment = Omit<Payment, 'id'>;

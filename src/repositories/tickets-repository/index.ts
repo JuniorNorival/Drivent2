@@ -32,11 +32,22 @@ async function findTicketsTypeByTypeId(id: number) {
 async function findTicketById(id: number) {
   return prisma.ticket.findFirst({ where: { id } });
 }
+
+async function updateTicketStatusById(ticketId: number) {
+  return prisma.ticket.update({
+    where: { id: ticketId },
+    data: {
+      status: TicketStatus.PAID,
+      updatedAt: new Date(),
+    },
+  });
+}
 const ticketsRepository = {
   createTicket,
   findAllTicketsTypes,
   findTicketbyUser,
   findTicketsTypeByTypeId,
   findTicketById,
+  updateTicketStatusById,
 };
 export default ticketsRepository;
