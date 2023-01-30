@@ -23,14 +23,16 @@ async function getTicketFromUser(userId: number) {
 
 async function createTicket(userId: number, ticketTypeId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
-
+  if (!enrollment) {
+    throw notFoundError();
+  }
   const insertedTicket = await ticketsRepository.createTicket(enrollment.id, ticketTypeId);
 
   if (!insertedTicket) {
     throw notFoundError();
   }
-
-  return insertedTicket;
+  const ticketType = await ticketsRepository.findTicketsTypeByTypeId(insertedTicket.ticketTypeId);
+  return { ...insertedTicket, TicketType: ticketType };
 }
 const ticketsService = {
   getTicketTypes,
