@@ -3,16 +3,11 @@ import { PaymentData } from '@/protocols';
 import enrollmentRepository from '@/repositories/enrollment-repository';
 import paymentsRepository, { NewPayment } from '@/repositories/payments-repository';
 import ticketsRepository from '@/repositories/tickets-repository';
-import { prisma, Ticket } from '@prisma/client';
-import { verify } from 'crypto';
-import { BAD_REQUEST } from 'http-status';
+import { Ticket } from '@prisma/client';
 
-async function createPayment(payment: PaymentData) {
+async function createPayment(userId: number, payment: PaymentData) {
   const ticket = await verifyTicket(payment.ticketId);
-
-  if (!payment.cardData) {
-    throw BAD_REQUEST;
-  }
+  await verifyUserTicket(userId, ticket);
 
   const ticketType = await ticketsRepository.findTicketsTypeByTypeId(ticket.ticketTypeId);
 
@@ -34,21 +29,26 @@ async function createPayment(payment: PaymentData) {
 
   return insertedPayment;
 }
-async function getPayment(ticketId: number) {
-  await verifyTicket(ticketId);
-
+async function getPayment(userId: number, ticketId: number) {
+  const ticket = await verifyTicket(ticketId);
+  await verifyUserTicket(userId, ticket);
   const paymentData = await paymentsRepository.findPaymentById(ticketId);
 
   return paymentData;
 }
 async function verifyTicket(ticketId: number) {
   const ticket = await ticketsRepository.findTicketById(ticketId);
-
   if (!ticket) {
     throw notFoundError();
   }
-
   return ticket;
+}
+async function verifyUserTicket(userId: number, ticket: Ticket) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+
+  if (ticket.enrollmentId !== enrollment.id) {
+    throw unauthorizedError();
+  }
 }
 
 const paymentService = {

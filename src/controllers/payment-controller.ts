@@ -7,9 +7,9 @@ import httpStatus from 'http-status';
 export async function createPayment(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
   const paymentData = req.body as PaymentData;
-
+  if (!paymentData.ticketId || !paymentData.cardData) return res.status(httpStatus.BAD_REQUEST).send({});
   try {
-    const paymentResponse = await paymentsService.createPayment(paymentData);
+    const paymentResponse = await paymentsService.createPayment(userId, paymentData);
 
     return res.status(httpStatus.OK).send(paymentResponse);
   } catch (error) {
@@ -23,9 +23,9 @@ export async function createPayment(req: AuthenticatedRequest, res: Response) {
 export async function getPaymentByTicketId(req: AuthenticatedRequest, res: Response) {
   try {
     const { userId } = req;
-    const ticketId = Number(req.query.ticketId);
-
-    const payment = await paymentsService.getPayment(ticketId);
+    const { ticketId } = req.query;
+    if (!ticketId) return res.status(httpStatus.BAD_REQUEST).send({});
+    const payment = await paymentsService.getPayment(userId, Number(ticketId));
 
     return res.status(httpStatus.OK).send(payment);
   } catch (error) {
